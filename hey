@@ -1,0 +1,632 @@
+<script src="//wzrd.in/standalone/virtual-dom@latest"></script><script type="text/javascript">//PRINT 'RUNTIME'
+
+
+
+    let MK_Curry = (fn, arity, ...args) => {
+        if(typeof arity !== 'number')
+          throw 'MK_Curry called with a non numeric arity';
+	return (arity <= args.length) ?
+	  fn(...args) :
+	    (...more) => MK_Curry(fn, arity, ...args, ...more)
+    };
+
+    function Make_Cons_NamedKeys(consName, ...names){
+	let o = function(...v){
+            // this.length = names.length;
+	    v.forEach((v, i) => {this[names[i]] = v;});
+	}
+        o.prototype[Symbol.iterator] = function(){
+            let self = this;
+            return {
+              next: function(){
+                let i = this._i;
+                if(i > names.length)
+                  return {done: true};
+                let v = i == 0 ? consName : self[names[i-1]];
+                this._i++;
+                return {done: false, value: v}
+              },
+              _i: 0
+            };
+        };
+	Object.defineProperty(o, 'name', {value: consName, configurable: true});
+	names.forEach(
+	    (name, i) =>
+		Object.defineProperty(
+		    o.prototype, i,
+		    {get: function(){return o[name];}}
+		)
+	);
+
+	let f = MK_Curry((...names) => new o(...names), names.length);
+        f.obj = o;
+        f.arity = names.length;
+        return f;
+    }
+    let Make_Cons = Make_Cons_NamedKeys;
+
+
+
+
+function match(branches, value){
+    let o = {};
+    
+    let helper = (pat, value) => {
+	if(pat instanceof Array){      // Pat_Cons
+	    let [cons, ...args] = pat;
+
+            if(cons == "Prims_Cons"){return value instanceof Array 
+                  && value.length
+                  && helper(args[0], value[0])
+                  && helper(args[1], value.slice(1));}
+if(cons == "Prims_Nil"){return !value.length;}
+if(cons == "FStar_Tactics_JavaScript_HTML_HtmlElement"){throw 'Try to destruct HtmlElement!'}
+if(cons == "FStar_Tactics_JavaScript_HTML_HtmlRaw"){throw 'Try to destruct HtmlRaw!'}
+            if(!(value||{})[Symbol.iterator])
+              return false;
+            let valueList = [...value];
+            
+	    return     (valueList[0] == cons
+		    && args.every(
+			(pat, i) =>
+			    helper(pat, valueList[i+1])
+		    )
+		   );
+        }else if ((pat || {}).bv){// Pat_Var|Wild|Dot_Term 
+	    o[pat.bv] = value;
+	    return true;
+	}else{                         // Pat_Constant
+	    return value === pat;
+	}
+	return false;
+    };
+    for(let [pat, term] of branches){
+	if(helper(pat, value))
+	    return term(o);
+    }
+    throw 'match unsuccessful';
+}
+let _MkMK_ = (name, arity) =>
+    {
+        // "^consCode^"
+
+	let o = l => [name, ...l];
+	for(let i=0; i < arity; i++){
+	    let prev = o;
+	    o = l => x => prev([x, ...l]);
+	}
+	return o([]);
+    };
+let _Y = (def, body) => {
+	let Y = () => def(() => Y ());
+	return body(Y());
+    };
+  
+
+// PRINT nativeConstructors
+
+
+let Prims_Cons = head => tail => [head, ...tail];
+
+let Prims_Nil = [];;
+
+let FStar_Tactics_JavaScript_HTML_HtmlElement = x => FStar_Tactics_JavaScript_VirtualDOM_mkVNode(x);
+
+let FStar_Tactics_JavaScript_HTML_HtmlRaw = x => FStar_Tactics_JavaScript_VirtualDOM_mkVText(x);
+
+
+// PRINT funs
+
+
+let FStar_Tactics_JavaScript_Natives_unsafe_currify = f => n => thisArg => MK_Curry(f.bind(thisArg), n);
+
+let FStar_Tactics_JavaScript_Natives_jsWindow = () => window;
+
+let FStar_Tactics_JavaScript_Natives_jsMinus = a => b => a - b;
+
+let FStar_Tactics_JavaScript_Natives_jsDiv = a => b => a / b;
+
+let FStar_Tactics_JavaScript_Natives_jsPlus = a => b => a + b;
+
+let FStar_Tactics_JavaScript_Natives_jsMul = a => b => a * b;
+
+let FStar_Tactics_JavaScript_Natives_emptyObject = () => ({});
+
+let FStar_Tactics_JavaScript_Natives_eval = code => eval(code);
+
+let Prims_admit = () => null;
+
+let Prims_magic = () => ['MAGIC'];
+
+let FStar_Tactics_JavaScript_Natives_jsObjectGet = o => k => o[k];
+
+let FStar_Tactics_JavaScript_Natives_jsObjectSet = o => k => v => {o[k] = v; return o;};
+
+let FStar_Tactics_JavaScript_Natives_jsObjectSetPure = o => k => v => {let x = Object.assign({}, o); x[k] = v; return x;};;
+
+let FStar_Tactics_JavaScript_Natives_jsGlobalThis = () => {try{return globalThis;}catch(e){}; try{return window;}catch(e){}; try{return global;}catch(e){}};
+
+let FStar_Tactics_JavaScript_Natives_null = null;
+
+let FStar_Tactics_JavaScript_Natives_undefined = undefined;
+
+let FStar_Tactics_JavaScript_Natives_jsNaN = NaN;
+
+let FStar_Tactics_JavaScript_Natives_jsInfinity = Infinity;
+
+let FStar_Tactics_JavaScript_Natives_constructorOf = f => (...args) => new f(...args);
+
+let UnitType = undefined;
+
+let Prims_strcat = x => y => x + y;
+
+let FStar_Char_char = x => x;
+
+let FStar_String_string_of_list = l => l.join('');
+
+let FStar_String_list_of_string = l => l.split('');
+
+let Prims_string_of_int = i => String(i);
+
+let FStar_Pervasives_Native_snd = y => y[1];
+
+let Prims_unsafe_coerce = x => x;
+
+let FStar_Pervasives_Native_fst = x => x[1];
+
+let Prims_op_Modulus = x => y => x % y;
+
+let Prims_op_AmpAmp = x => y => x && y;
+
+let Prims_op_BarBar = x => y => x || y;
+
+let Prims_op_Equality = x => y => x == y;
+
+let Prims_op_LessThanOrEqual = x => y => x <= y;
+
+let Prims_op_LessThan = x => y => x < y;
+
+let Prims_op_GreaterThanOrEqual = x => y => x >= y;
+
+let Prims_op_GreaterThan = x => y => x > y;
+
+let Prims_op_Addition = x => y => x + y;
+
+let Prims_op_Subtraction = x => y => x - y;
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_mkVText = ((t) => FStar_Tactics_JavaScript_VirtualDOM_vd_VText(t));
+
+let FStar_Tactics_JavaScript_VirtualDOM_mkVText = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_mkVText;
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_VText = ((text) => _Y(_ => FStar_Tactics_JavaScript_Natives_constructorOf(FStar_Tactics_JavaScript_Natives_obj_of_jsVal(FStar_Tactics_JavaScript_Natives_op_At_Dot(FStar_Tactics_JavaScript_VirtualDOM_virtualDom(UnitType))("VText"))), vtext => _Y(_ => FStar_Tactics_JavaScript_Natives_unsafe_currify(vtext)(1)(FStar_Tactics_JavaScript_Natives_null), f => f(text) ) ));
+
+let FStar_Tactics_JavaScript_VirtualDOM_vd_VText = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_VText;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_op_At_Dot = ((o) => ((key) => FStar_Tactics_JavaScript_Natives_obj_of_jsVal(FStar_Tactics_JavaScript_Natives_jsObjectGet(o)(key))));
+
+let FStar_Tactics_JavaScript_Natives_op_At_Dot = NonRecFun_FStar_Tactics_JavaScript_Natives_op_At_Dot;
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_virtualDom = ((uu___) => _Y(_ => Prims_unsafe_coerce(FStar_Tactics_JavaScript_Natives_jsWindow), jsWindow => FStar_Tactics_JavaScript_Natives_obj_of_jsVal(FStar_Tactics_JavaScript_Natives_op_At_Dot(jsWindow(UnitType))("virtualDom")) ));
+
+let FStar_Tactics_JavaScript_VirtualDOM_virtualDom = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_virtualDom;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_obj_of_jsVal = ((v) => FStar_Tactics_JavaScript_Natives___unsafe_jsVal_cast(v));
+
+let FStar_Tactics_JavaScript_Natives_obj_of_jsVal = NonRecFun_FStar_Tactics_JavaScript_Natives_obj_of_jsVal;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives___unsafe_jsVal_cast = ((v) => Prims_unsafe_coerce(v));
+
+let FStar_Tactics_JavaScript_Natives___unsafe_jsVal_cast = NonRecFun_FStar_Tactics_JavaScript_Natives___unsafe_jsVal_cast;
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_mkVNode = ((tag) => ((attrs) => ((children) => _Y(_ => FStar_Tactics_JavaScript_HTML_tuplesToJSObject(FStar_List_Tot_Base_map(((a) => match([[["FStar_Tactics_JavaScript_HTML_TextAttribute", {bv: "k"}, ["FStar_Pervasives_Native_Some", {bv: "v"}]], ({k,uu___,v}) => FStar_Pervasives_Native_Mktuple2(k)(Prims_unsafe_coerce(v))], [["FStar_Tactics_JavaScript_HTML_TextAttribute", {bv: "k"}, {bv: "uu___"}], ({k,uu___}) => FStar_Pervasives_Native_Mktuple2(k)(FStar_Tactics_JavaScript_Natives_null)], [["FStar_Tactics_JavaScript_HTML_EventAttribute", {bv: "k"}, {bv: "f"}], ({k,f}) => FStar_Pervasives_Native_Mktuple2(k)(Prims_unsafe_coerce(f))]], a)))(attrs)), attrs => FStar_Tactics_JavaScript_VirtualDOM_vd_VNode(tag)(attrs)(match([[["FStar_Pervasives_Native_Some", {bv: "x"}], ({uu___,x}) => x], [{bv: "uu___"}, ({uu___}) => Prims_Nil]], children)) ))));
+
+let FStar_Tactics_JavaScript_VirtualDOM_mkVNode = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_mkVNode;
+
+let FStar_Pervasives_Native_Mktuple2 = Make_Cons("FStar_Pervasives_Native_Mktuple2", "_1", "_2");
+
+let FStar_Tactics_JavaScript_HTML_TextAttribute = Make_Cons("FStar_Tactics_JavaScript_HTML_TextAttribute", "_0", "_1");
+
+let FStar_Pervasives_Native_Some = Make_Cons("FStar_Pervasives_Native_Some", "v");
+
+let FStar_Tactics_JavaScript_HTML_EventAttribute = Make_Cons("FStar_Tactics_JavaScript_HTML_EventAttribute", "_0", "_1");
+
+let FStar_List_Tot_Base_map = ((f) => ((x) => match([[["Prims_Nil"], ({uu___}) => Prims_Nil], [["Prims_Cons", {bv: "a"}, {bv: "tl"}], ({uu___,a,tl}) => Prims_Cons(f(a))(FStar_List_Tot_Base_map(f)(tl))]], x)));
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_VNode = ((tag) => _Y(_ => FStar_Tactics_JavaScript_Natives_constructorOf(FStar_Tactics_JavaScript_Natives_obj_of_jsVal(FStar_Tactics_JavaScript_Natives_op_At_Dot(FStar_Tactics_JavaScript_VirtualDOM_virtualDom(UnitType))("VNode"))), vnode => _Y(_ => FStar_Tactics_JavaScript_Natives_unsafe_currify(vnode)(3)(FStar_Tactics_JavaScript_Natives_null), f => f(tag) ) ));
+
+let FStar_Tactics_JavaScript_VirtualDOM_vd_VNode = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_VNode;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_tuplesToJSObject = ((l) => FStar_List_Tot_Base_fold_left(((o) => ((uu___) => match([[["FStar_Pervasives_Native_Mktuple2", {bv: "k"}, {bv: "v"}], ({uu___,k,v}) => FStar_Tactics_JavaScript_Natives_jsObjectSetPure(o)(k)(v)]], uu___))))(FStar_Tactics_JavaScript_Natives_emptyObject(UnitType))(l));
+
+let FStar_Tactics_JavaScript_HTML_tuplesToJSObject = NonRecFun_FStar_Tactics_JavaScript_HTML_tuplesToJSObject;
+
+let FStar_List_Tot_Base_fold_left = ((f) => ((x) => ((l) => match([[["Prims_Nil"], ({uu___}) => x], [["Prims_Cons", {bv: "hd"}, {bv: "tl"}], ({uu___,hd,tl}) => FStar_List_Tot_Base_fold_left(f)(f(x)(hd))(tl)]], l))));
+
+let NonRecFun_TodoList_app = ((uu___) => FStar_Tactics_JavaScript_VirtualDOM_startElm(((uu___) => FStar_Pervasives_Native_Mktuple2(TodoList_emptyModel)(Prims_Nil)))(TodoList_update)(TodoList_view)(Prims_Nil));
+
+let TodoList_app = NonRecFun_TodoList_app;
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_startElm = ((init) => ((update) => ((view) => ((subscriptions) => _Y(_ => FStar_Tactics_JavaScript_Natives_emptyObject(UnitType), _state => _Y(_ => init(UnitType), uu___ => match([[["FStar_Pervasives_Native_Mktuple2", {bv: "m0"}, {bv: "cmd"}], ({uu___,m0,cmd}) => _Y(_ => ((k) => ((v) => FStar_Tactics_JavaScript_Natives_jsObjectSet(_state)(k)(v))), set => _Y(_ => ((v) => Prims_unsafe_coerce(FStar_Tactics_JavaScript_Natives_jsObjectGet(_state)(v))), get => _Y(_ => FStar_Tactics_JavaScript_Natives_jsObjectSet(_state)("model")(m0), uu___ => _Y(_ => ((e1) => _Y(_ => _Y(_ => _Y(_ => _Y(_ => FStar_Tactics_JavaScript_Natives_getElementById("render"), uu___ => Prims_unsafe_coerce(uu___) ), uu___ => FStar_Tactics_JavaScript_Natives_op_At_Dot(uu___)("children") ), uu___ => FStar_Tactics_JavaScript_Natives_op_At_Dot(uu___)("0") ), div => _Y(_ => FStar_Tactics_JavaScript_Natives_unsafe_pure_jsVal_cast(div), div => _Y(_ => FStar_Tactics_JavaScript_Natives_unsafe_pure_jsVal_cast(FStar_Tactics_JavaScript_Natives_jsObjectGet(_state)("e")), e0 => _Y(_ => FStar_Tactics_JavaScript_Natives_jsObjectSet(_state)("e")(e1), uu___ => FStar_Tactics_JavaScript_VirtualDOM_vd_patch(div)(FStar_Tactics_JavaScript_VirtualDOM_vd_diff(e0)(e1)) ) ) ) )), render => _Y(_ => set("render")(render), uu___ => _Y(_ => ((the_msg) => _Y(_ => FStar_Tactics_JavaScript_Natives_jsObjectGet(_state)("model"), m0 => _Y(_ => update(the_msg)(Prims_unsafe_coerce(m0)), uu___ => match([[["FStar_Pervasives_Native_Mktuple2", {bv: "m1"}, {bv: "cmd"}], ({uu___,m1,cmd}) => _Y(_ => FStar_Tactics_JavaScript_Natives_jsObjectSet(_state)("model")(m1), uu___ => _Y(_ => render(view(m1)(get("update_and_view"))), uu___ => _Y(_ => get("process_command"), process_command => process_command(cmd) ) ) )]], uu___) ) )), update_and_view => _Y(_ => set("update_and_view")(update_and_view), uu___ => _Y(_ => ((s) => match([[["Prims_Nil"], ({uu___}) => UnitType], [["Prims_Cons", {bv: "hd"}, {bv: "tl"}], ({uu___,hd,tl}) => match([[["FStar_Tactics_JavaScript_VirtualDOM_DelayMessage", {bv: "msg"}], ({uu___,msg}) => _Y(_ => FStar_Tactics_JavaScript_Natives_setTimeout(((x) => update_and_view(msg)))(5000), uu___ => UnitType )], [["FStar_Tactics_JavaScript_VirtualDOM_RandomNumber", {bv: "min"}, {bv: "max"}, {bv: "msg"}], ({uu___,min,max,msg}) => _Y(_ => FStar_Tactics_JavaScript_Natives_randomInt(min)(max), n => update_and_view(msg(n)) )]], hd)]], s)), process_command => _Y(_ => set("process_command")(process_command), uu___ => _Y(_ => view(m0)(update_and_view), v0 => _Y(_ => FStar_Tactics_JavaScript_Natives_jsObjectSet(_state)("e")(v0), uu___ => _Y(_ => FStar_Tactics_JavaScript_Natives_getElementById("render"), div => _Y(_ => FStar_Tactics_JavaScript_Natives_currifyMethod(Prims_unsafe_coerce(div))("appendChild")(1), append => _Y(_ => append(FStar_Tactics_JavaScript_VirtualDOM_vd_createElement(v0)), uu___ => UnitType ) ) ) ) ) ) ) ) ) ) ) ) ) )]], uu___) ) )))));
+
+let FStar_Tactics_JavaScript_VirtualDOM_startElm = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_startElm;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_currifyMethod = ((o) => ((key) => ((arity) => _Y(_ => FStar_Tactics_JavaScript_Natives_unsafe_jsVal_cast(FStar_Tactics_JavaScript_Natives_op_At_Dot(o)(key)), uu___ => FStar_Tactics_JavaScript_Natives_currify(uu___)(arity)(o) ))));
+
+let FStar_Tactics_JavaScript_Natives_currifyMethod = NonRecFun_FStar_Tactics_JavaScript_Natives_currifyMethod;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_unsafe_jsVal_cast = ((v) => FStar_Tactics_JavaScript_Natives___unsafe_jsVal_cast(v));
+
+let FStar_Tactics_JavaScript_Natives_unsafe_jsVal_cast = NonRecFun_FStar_Tactics_JavaScript_Natives_unsafe_jsVal_cast;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_currify = ((f) => ((arity) => ((thisArg) => FStar_Tactics_JavaScript_Natives_unsafe_currify(f)(arity)(thisArg))));
+
+let FStar_Tactics_JavaScript_Natives_currify = NonRecFun_FStar_Tactics_JavaScript_Natives_currify;
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_createElement = ((e) => _Y(_ => FStar_Tactics_JavaScript_Natives_unsafe_currifyMethod(FStar_Tactics_JavaScript_VirtualDOM_virtualDom(UnitType))("create")(1), f => f(e) ));
+
+let FStar_Tactics_JavaScript_VirtualDOM_vd_createElement = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_createElement;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_unsafe_currifyMethod = ((o) => ((key) => ((arity) => FStar_Tactics_JavaScript_Natives_unsafe_currify(FStar_Tactics_JavaScript_Natives_unsafe_pure_jsVal_cast(FStar_Tactics_JavaScript_Natives_op_At_Dot(o)(key)))(arity)(o))));
+
+let FStar_Tactics_JavaScript_Natives_unsafe_currifyMethod = NonRecFun_FStar_Tactics_JavaScript_Natives_unsafe_currifyMethod;
+
+let FStar_Tactics_JavaScript_VirtualDOM_RandomNumber = Make_Cons("FStar_Tactics_JavaScript_VirtualDOM_RandomNumber", "min", "max", "_2");
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_randomInt = ((min) => ((max) => _Y(_ => FStar_Tactics_JavaScript_Natives_random(UnitType), rand => _Y(_ => FStar_Tactics_JavaScript_Natives_asJsVal(min), min => _Y(_ => FStar_Tactics_JavaScript_Natives_asJsVal(max), max => FStar_Tactics_JavaScript_Natives_parseInt(FStar_Tactics_JavaScript_Natives_jsPlus(FStar_Tactics_JavaScript_Natives_jsMul(rand)(FStar_Tactics_JavaScript_Natives_jsMinus(max)(min)))(min)) ) ) )));
+
+let FStar_Tactics_JavaScript_Natives_randomInt = NonRecFun_FStar_Tactics_JavaScript_Natives_randomInt;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_random = ((uu___) => _Y(_ => FStar_Tactics_JavaScript_Natives_currifyMethod(FStar_Tactics_JavaScript_Natives_mathObject(UnitType))("random")(1), f => f(UnitType) ));
+
+let FStar_Tactics_JavaScript_Natives_random = NonRecFun_FStar_Tactics_JavaScript_Natives_random;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_mathObject = ((uu___) => _Y(_ => Prims_unsafe_coerce(FStar_Tactics_JavaScript_Natives_jsGlobalThis), jsGlobalThis => FStar_Tactics_JavaScript_Natives_op_At_Dot(jsGlobalThis(UnitType))("Math") ));
+
+let FStar_Tactics_JavaScript_Natives_mathObject = NonRecFun_FStar_Tactics_JavaScript_Natives_mathObject;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_parseInt = ((v) => _Y(_ => Prims_unsafe_coerce(FStar_Tactics_JavaScript_Natives_jsGlobalThis), jsGlobalThis => _Y(_ => FStar_Tactics_JavaScript_Natives_unsafe_currify(FStar_Tactics_JavaScript_Natives_op_At_Dot(jsGlobalThis(UnitType))("parseInt"))(1)(FStar_Tactics_JavaScript_Natives_null), f => f(v) ) ));
+
+let FStar_Tactics_JavaScript_Natives_parseInt = NonRecFun_FStar_Tactics_JavaScript_Natives_parseInt;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_asJsVal = ((v) => Prims_unsafe_coerce(v));
+
+let FStar_Tactics_JavaScript_Natives_asJsVal = NonRecFun_FStar_Tactics_JavaScript_Natives_asJsVal;
+
+let FStar_Tactics_JavaScript_VirtualDOM_DelayMessage = Make_Cons("FStar_Tactics_JavaScript_VirtualDOM_DelayMessage", "_0");
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_unsafe_pure_jsVal_cast = ((v) => FStar_Tactics_JavaScript_Natives___unsafe_jsVal_cast(v));
+
+let FStar_Tactics_JavaScript_Natives_unsafe_pure_jsVal_cast = NonRecFun_FStar_Tactics_JavaScript_Natives_unsafe_pure_jsVal_cast;
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_diff = ((e1) => ((e2) => _Y(_ => FStar_Tactics_JavaScript_Natives_unsafe_currifyMethod(FStar_Tactics_JavaScript_VirtualDOM_virtualDom(UnitType))("diff")(2), f => f(e1)(e2) )));
+
+let FStar_Tactics_JavaScript_VirtualDOM_vd_diff = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_diff;
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_patch = ((n) => ((po) => _Y(_ => FStar_Tactics_JavaScript_Natives_currifyMethod(FStar_Tactics_JavaScript_VirtualDOM_virtualDom(UnitType))("patch")(2), f => f(n)(po) )));
+
+let FStar_Tactics_JavaScript_VirtualDOM_vd_patch = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_vd_patch;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_getElementById = ((id) => _Y(_ => _Y(_ => _Y(_ => FStar_Tactics_JavaScript_Natives_jsWindow(UnitType), uu___ => FStar_Tactics_JavaScript_Natives_op_At_Dot(uu___)("document") ), uu___ => FStar_Tactics_JavaScript_Natives_currifyMethod(uu___)("getElementById")(1) ), f => f(id) ));
+
+let FStar_Tactics_JavaScript_Natives_getElementById = NonRecFun_FStar_Tactics_JavaScript_Natives_getElementById;
+
+let NonRecFun_TodoList_emptyModel = TodoList_Mkmodel(Prims_Nil)("")(0)("All");
+
+let TodoList_emptyModel = NonRecFun_TodoList_emptyModel;
+
+let TodoList_Mkmodel = Make_Cons("TodoList_Mkmodel", "tasks", "field", "uid", "visibility");
+
+let NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_command = ((msg) => Prims_list(FStar_Tactics_JavaScript_VirtualDOM_command_(msg)));
+
+let FStar_Tactics_JavaScript_VirtualDOM_command = NonRecFun_FStar_Tactics_JavaScript_VirtualDOM_command;
+
+let NonRecFun_TodoList_update = ((msg) => ((mo) => match([[["TodoList_NoOp"], ({}) => FStar_Pervasives_Native_Mktuple2(mo)(Prims_Nil)], [["TodoList_UpdateField", {bv: "str"}], ({str}) => FStar_Pervasives_Native_Mktuple2(_Y(_ => mo, uu___8360 => TodoList_Mkmodel(TodoList___proj__Mkmodel__item__tasks(uu___8360))(str)(TodoList___proj__Mkmodel__item__uid(uu___8360))(TodoList___proj__Mkmodel__item__visibility(uu___8360)) ))(TodoList_save(mo))], [["TodoList_Add"], ({}) => _Y(_ => TodoList_Task_trim(TodoList___proj__Mkmodel__item__field(mo)), d => _Y(_ => match([[true, ({}) => mo], [{bv: "uu___"}, ({uu___}) => _Y(_ => mo, uu___8365 => TodoList_Mkmodel(FStar_List_Tot_Base_append(TodoList___proj__Mkmodel__item__tasks(mo))(Prims_Cons(TodoList_Task_init(d)(TodoList___proj__Mkmodel__item__uid(mo)))(Prims_Nil)))("")(Prims_op_Addition(TodoList___proj__Mkmodel__item__uid(mo))(1))(TodoList___proj__Mkmodel__item__visibility(uu___8365)) )]], Prims_op_Equality(d)("")), mo_ => FStar_Pervasives_Native_Mktuple2(mo_)(TodoList_save(mo_)) ) )], [["TodoList_UpdateTask", ["FStar_Pervasives_Native_Mktuple2", {bv: "id"}, {bv: "taskMsg"}]], ({uu___,id,taskMsg}) => _Y(_ => ((t) => match([[true, ({}) => TodoList_Task_update(taskMsg)(t)], [{bv: "uu___"}, ({uu___}) => FStar_Pervasives_Native_Some(t)]], Prims_op_Equality(TodoList_Task___proj__Mkmodel__item__id(t))(id))), updateTask => _Y(_ => _Y(_ => mo, uu___8375 => TodoList_Mkmodel(TodoList_filterMap(updateTask)(TodoList___proj__Mkmodel__item__tasks(mo)))(TodoList___proj__Mkmodel__item__field(uu___8375))(TodoList___proj__Mkmodel__item__uid(uu___8375))(TodoList___proj__Mkmodel__item__visibility(uu___8375)) ), newMo => match([[["TodoList_Task_Focus", {bv: "elementId"}], ({elementId}) => FStar_Pervasives_Native_Mktuple2(newMo)(FStar_List_Tot_Base_append(TodoList_save(newMo))(TodoList_focusTask(elementId)))], [{bv: "uu___"}, ({uu___}) => FStar_Pervasives_Native_Mktuple2(newMo)(TodoList_save(newMo))]], taskMsg) ) )], [["TodoList_DeleteComplete"], ({}) => _Y(_ => _Y(_ => mo, uu___8382 => TodoList_Mkmodel(FStar_List_Tot_Base_filter(((t) => Prims_op_Equality(TodoList_Task___proj__Mkmodel__item__completed(t))(false)))(TodoList___proj__Mkmodel__item__tasks(mo)))(TodoList___proj__Mkmodel__item__field(uu___8382))(TodoList___proj__Mkmodel__item__uid(uu___8382))(TodoList___proj__Mkmodel__item__visibility(uu___8382)) ), newMo => FStar_Pervasives_Native_Mktuple2(newMo)(TodoList_save(newMo)) )], [["TodoList_CheckAll", {bv: "bool"}], ({bool}) => _Y(_ => ((t) => _Y(_ => t, uu___8390 => TodoList_Task_Mkmodel(TodoList_Task___proj__Mkmodel__item__description(uu___8390))(bool)(TodoList_Task___proj__Mkmodel__item__edits(uu___8390))(TodoList_Task___proj__Mkmodel__item__id(uu___8390)) )), updateTask => _Y(_ => _Y(_ => mo, uu___8392 => TodoList_Mkmodel(FStar_List_Tot_Base_map(updateTask)(TodoList___proj__Mkmodel__item__tasks(mo)))(TodoList___proj__Mkmodel__item__field(uu___8392))(TodoList___proj__Mkmodel__item__uid(uu___8392))(TodoList___proj__Mkmodel__item__visibility(uu___8392)) ), newMo => FStar_Pervasives_Native_Mktuple2(newMo)(TodoList_save(newMo)) ) )], [["TodoList_ChangeVisibility", {bv: "visibility"}], ({visibility}) => _Y(_ => _Y(_ => mo, uu___8397 => TodoList_Mkmodel(TodoList___proj__Mkmodel__item__tasks(uu___8397))(TodoList___proj__Mkmodel__item__field(uu___8397))(TodoList___proj__Mkmodel__item__uid(uu___8397))(visibility) ), newMo => FStar_Pervasives_Native_Mktuple2(newMo)(TodoList_save(mo)) )]], msg)));
+
+let TodoList_update = NonRecFun_TodoList_update;
+
+let TodoList_NoOp = Make_Cons("TodoList_NoOp");
+
+let NonRecFun_TodoList___proj__Mkmodel__item__tasks = ((projectee) => match([[["TodoList_Mkmodel", {bv: "tasks"}, {bv: "field"}, {bv: "uid"}, {bv: "visibility"}], ({tasks,field,uid,visibility}) => tasks]], projectee));
+
+let TodoList___proj__Mkmodel__item__tasks = NonRecFun_TodoList___proj__Mkmodel__item__tasks;
+
+let NonRecFun_TodoList___proj__Mkmodel__item__uid = ((projectee) => match([[["TodoList_Mkmodel", {bv: "tasks"}, {bv: "field"}, {bv: "uid"}, {bv: "visibility"}], ({tasks,field,uid,visibility}) => uid]], projectee));
+
+let TodoList___proj__Mkmodel__item__uid = NonRecFun_TodoList___proj__Mkmodel__item__uid;
+
+let NonRecFun_TodoList___proj__Mkmodel__item__visibility = ((projectee) => match([[["TodoList_Mkmodel", {bv: "tasks"}, {bv: "field"}, {bv: "uid"}, {bv: "visibility"}], ({tasks,field,uid,visibility}) => visibility]], projectee));
+
+let TodoList___proj__Mkmodel__item__visibility = NonRecFun_TodoList___proj__Mkmodel__item__visibility;
+
+let NonRecFun_TodoList_save = ((uu___) => Prims_Nil);
+
+let TodoList_save = NonRecFun_TodoList_save;
+
+let TodoList_UpdateField = Make_Cons("TodoList_UpdateField", "_0");
+
+let NonRecFun_TodoList_Task_trim = TodoList_Task_mkListFunStrFun(HTTP_Server_Helpers_trimList(TodoList_Task_notSpace));
+
+let TodoList_Task_trim = NonRecFun_TodoList_Task_trim;
+
+let NonRecFun_TodoList_Task_mkListFunStrFun = ((f) => ((s) => FStar_String_concat("")(f(FStar_List_Tot_Base_map(FStar_String_string_of_list)(Prims_Cons(FStar_String_list_of_string(s))(Prims_Nil))))));
+
+let TodoList_Task_mkListFunStrFun = NonRecFun_TodoList_Task_mkListFunStrFun;
+
+let NonRecFun_FStar_String_char = FStar_Char_char;
+
+let FStar_String_char = NonRecFun_FStar_String_char;
+
+let NonRecFun_TodoList_Task_notSpace = ((c) => match([["	", ({}) => false], [" ", ({}) => false], [{bv: "uu___"}, ({uu___}) => true]], c));
+
+let TodoList_Task_notSpace = NonRecFun_TodoList_Task_notSpace;
+
+let NonRecFun_HTTP_Server_Helpers_trimList = ((keep) => ((l) => HTTP_Server_Helpers_trimRightList(keep)(HTTP_Server_Helpers_trimLeftList(keep)(l))));
+
+let HTTP_Server_Helpers_trimList = NonRecFun_HTTP_Server_Helpers_trimList;
+
+let NonRecFun_HTTP_Server_Helpers_trimRightList = ((keep) => ((s) => FStar_List_Tot_Base_rev(HTTP_Server_Helpers_trimLeftList(keep)(FStar_List_Tot_Base_rev(s)))));
+
+let HTTP_Server_Helpers_trimRightList = NonRecFun_HTTP_Server_Helpers_trimRightList;
+
+let NonRecFun_FStar_List_Tot_Base_rev = ((l) => FStar_List_Tot_Base_rev_acc(l)(Prims_Nil));
+
+let FStar_List_Tot_Base_rev = NonRecFun_FStar_List_Tot_Base_rev;
+
+let FStar_List_Tot_Base_rev_acc = ((l) => ((acc) => match([[["Prims_Nil"], ({uu___}) => acc], [["Prims_Cons", {bv: "hd"}, {bv: "tl"}], ({uu___,hd,tl}) => FStar_List_Tot_Base_rev_acc(tl)(Prims_Cons(hd)(acc))]], l)));
+
+let HTTP_Server_Helpers_trimLeftList = ((keep) => ((s) => match([[["Prims_Nil"], ({uu___}) => Prims_Nil], [["Prims_Cons", {bv: "h"}, {bv: "tl"}], ({uu___,h,tl}) => match([[true, ({}) => Prims_Cons(h)(tl)], [{bv: "uu___"}, ({uu___}) => HTTP_Server_Helpers_trimLeftList(keep)(tl)]], keep(h))]], s)));
+
+let NonRecFun_TodoList___proj__Mkmodel__item__field = ((projectee) => match([[["TodoList_Mkmodel", {bv: "tasks"}, {bv: "field"}, {bv: "uid"}, {bv: "visibility"}], ({tasks,field,uid,visibility}) => field]], projectee));
+
+let TodoList___proj__Mkmodel__item__field = NonRecFun_TodoList___proj__Mkmodel__item__field;
+
+let NonRecFun_TodoList_Task_init = ((desc) => ((id) => TodoList_Task_Mkmodel(desc)(false)(FStar_Pervasives_Native_None)(id)));
+
+let TodoList_Task_init = NonRecFun_TodoList_Task_init;
+
+let FStar_Pervasives_Native_None = Make_Cons("FStar_Pervasives_Native_None");
+
+let FStar_List_Tot_Base_append = ((x) => ((y) => match([[["Prims_Nil"], ({uu___}) => y], [["Prims_Cons", {bv: "a"}, {bv: "tl"}], ({uu___,a,tl}) => Prims_Cons(a)(FStar_List_Tot_Base_append(tl)(y))]], x)));
+
+let TodoList_Add = Make_Cons("TodoList_Add");
+
+let NonRecFun_TodoList_Task___proj__Mkmodel__item__id = ((projectee) => match([[["TodoList_Task_Mkmodel", {bv: "description"}, {bv: "completed"}, {bv: "edits"}, {bv: "id"}], ({description,completed,edits,id}) => id]], projectee));
+
+let TodoList_Task___proj__Mkmodel__item__id = NonRecFun_TodoList_Task___proj__Mkmodel__item__id;
+
+let NonRecFun_TodoList_Task_update = ((msg) => ((model) => match([[["TodoList_Task_Focus", {bv: "elementId"}], ({elementId}) => FStar_Pervasives_Native_Some(_Y(_ => model, uu___25 => TodoList_Task_Mkmodel(TodoList_Task___proj__Mkmodel__item__description(uu___25))(TodoList_Task___proj__Mkmodel__item__completed(uu___25))(FStar_Pervasives_Native_Some(TodoList_Task___proj__Mkmodel__item__description(model)))(TodoList_Task___proj__Mkmodel__item__id(uu___25)) ))], [["TodoList_Task_Edit", {bv: "description"}], ({description}) => FStar_Pervasives_Native_Some(_Y(_ => model, uu___29 => TodoList_Task_Mkmodel(TodoList_Task___proj__Mkmodel__item__description(uu___29))(TodoList_Task___proj__Mkmodel__item__completed(uu___29))(FStar_Pervasives_Native_Some(description))(TodoList_Task___proj__Mkmodel__item__id(uu___29)) ))], [["TodoList_Task_Cancel"], ({}) => FStar_Pervasives_Native_Some(_Y(_ => model, uu___32 => TodoList_Task_Mkmodel(TodoList_Task___proj__Mkmodel__item__description(uu___32))(TodoList_Task___proj__Mkmodel__item__completed(uu___32))(FStar_Pervasives_Native_None)(TodoList_Task___proj__Mkmodel__item__id(uu___32)) ))], [["TodoList_Task_Commit"], ({}) => match([[["FStar_Pervasives_Native_None"], ({uu___}) => FStar_Pervasives_Native_Some(model)], [["FStar_Pervasives_Native_Some", {bv: "rawDescription"}], ({uu___,rawDescription}) => _Y(_ => TodoList_Task_trim(rawDescription), description => match([[true, ({}) => FStar_Pervasives_Native_None], [{bv: "uu___"}, ({uu___}) => FStar_Pervasives_Native_Some(_Y(_ => model, uu___40 => TodoList_Task_Mkmodel(description)(TodoList_Task___proj__Mkmodel__item__completed(uu___40))(FStar_Pervasives_Native_None)(TodoList_Task___proj__Mkmodel__item__id(uu___40)) ))]], Prims_op_Equality(description)("")) )]], TodoList_Task___proj__Mkmodel__item__edits(model))], [["TodoList_Task_Completed", {bv: "bool"}], ({bool}) => FStar_Pervasives_Native_Some(_Y(_ => model, uu___44 => TodoList_Task_Mkmodel(TodoList_Task___proj__Mkmodel__item__description(uu___44))(bool)(TodoList_Task___proj__Mkmodel__item__edits(uu___44))(TodoList_Task___proj__Mkmodel__item__id(uu___44)) ))], [["TodoList_Task_Delete"], ({}) => FStar_Pervasives_Native_None], [{bv: "uu___"}, ({uu___}) => FStar_Pervasives_Native_None]], msg)));
+
+let TodoList_Task_update = NonRecFun_TodoList_Task_update;
+
+let TodoList_Task_Edit = Make_Cons("TodoList_Task_Edit", "_0");
+
+let TodoList_Task_Cancel = Make_Cons("TodoList_Task_Cancel");
+
+let TodoList_Task_Commit = Make_Cons("TodoList_Task_Commit");
+
+let TodoList_Task_Completed = Make_Cons("TodoList_Task_Completed", "_0");
+
+let TodoList_Task_Delete = Make_Cons("TodoList_Task_Delete");
+
+let NonRecFun_TodoList_focusTask = ((elementId) => Prims_Nil);
+
+let TodoList_focusTask = NonRecFun_TodoList_focusTask;
+
+let TodoList_Task_Focus = Make_Cons("TodoList_Task_Focus", "_0");
+
+let TodoList_filterMap = ((f) => ((l) => match([[["Prims_Nil"], ({uu___}) => Prims_Nil], [["Prims_Cons", {bv: "hd"}, {bv: "tl"}], ({uu___,hd,tl}) => match([[["FStar_Pervasives_Native_Some", {bv: "hd"}], ({uu___,hd}) => Prims_Cons(hd)(TodoList_filterMap(f)(tl))], [["FStar_Pervasives_Native_None"], ({uu___}) => TodoList_filterMap(f)(tl)]], f(hd))]], l)));
+
+let TodoList_UpdateTask = Make_Cons("TodoList_UpdateTask", "_0");
+
+let FStar_List_Tot_Base_filter = ((f) => ((uu___8) => match([[["Prims_Nil"], ({uu___}) => Prims_Nil], [["Prims_Cons", {bv: "hd"}, {bv: "tl"}], ({uu___,hd,tl}) => match([[true, ({}) => Prims_Cons(hd)(FStar_List_Tot_Base_filter(f)(tl))], [{bv: "uu___"}, ({uu___}) => FStar_List_Tot_Base_filter(f)(tl)]], f(hd))]], uu___8)));
+
+let NonRecFun_TodoList_Task___proj__Mkmodel__item__completed = ((projectee) => match([[["TodoList_Task_Mkmodel", {bv: "description"}, {bv: "completed"}, {bv: "edits"}, {bv: "id"}], ({description,completed,edits,id}) => completed]], projectee));
+
+let TodoList_Task___proj__Mkmodel__item__completed = NonRecFun_TodoList_Task___proj__Mkmodel__item__completed;
+
+let TodoList_DeleteComplete = Make_Cons("TodoList_DeleteComplete");
+
+let NonRecFun_TodoList_Task___proj__Mkmodel__item__edits = ((projectee) => match([[["TodoList_Task_Mkmodel", {bv: "description"}, {bv: "completed"}, {bv: "edits"}, {bv: "id"}], ({description,completed,edits,id}) => edits]], projectee));
+
+let TodoList_Task___proj__Mkmodel__item__edits = NonRecFun_TodoList_Task___proj__Mkmodel__item__edits;
+
+let NonRecFun_TodoList_Task___proj__Mkmodel__item__description = ((projectee) => match([[["TodoList_Task_Mkmodel", {bv: "description"}, {bv: "completed"}, {bv: "edits"}, {bv: "id"}], ({description,completed,edits,id}) => description]], projectee));
+
+let TodoList_Task___proj__Mkmodel__item__description = NonRecFun_TodoList_Task___proj__Mkmodel__item__description;
+
+let TodoList_Task_Mkmodel = Make_Cons("TodoList_Task_Mkmodel", "description", "completed", "edits", "id");
+
+let TodoList_CheckAll = Make_Cons("TodoList_CheckAll", "_0");
+
+let TodoList_ChangeVisibility = Make_Cons("TodoList_ChangeVisibility", "_0");
+
+let NonRecFun_TodoList_view = ((mo) => ((f) => FStar_Tactics_JavaScript_HTML_div(Prims_Cons(TodoList_class_("todomvc-wrapper"))(Prims_Cons(TodoList_style(Prims_Cons(FStar_Pervasives_Native_Mktuple2("visibility")("hidden"))(Prims_Nil)))(Prims_Nil)))(Prims_Cons(FStar_Tactics_JavaScript_HTML_section(Prims_Cons(TodoList_class_("todoapp"))(Prims_Nil))(Prims_Cons(TodoList_taskEntry(TodoList___proj__Mkmodel__item__field(mo))(f))(Prims_Cons(TodoList_taskList(TodoList___proj__Mkmodel__item__visibility(mo))(TodoList___proj__Mkmodel__item__tasks(mo))(f))(Prims_Cons(TodoList_controls(TodoList___proj__Mkmodel__item__visibility(mo))(TodoList___proj__Mkmodel__item__tasks(mo))(f))(Prims_Nil)))))(Prims_Nil))));
+
+let TodoList_view = NonRecFun_TodoList_view;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_div = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("div")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_div = NonRecFun_FStar_Tactics_JavaScript_HTML_div;
+
+let NonRecFun_TodoList_style = ((l) => FStar_Tactics_JavaScript_HTML_TextAttribute("style")(FStar_Pervasives_Native_Some(FStar_String_concat("")(FStar_List_Tot_Base_map(((uu___) => match([[["FStar_Pervasives_Native_Mktuple2", {bv: "k"}, {bv: "v"}], ({uu___,k,v}) => Prims_op_Hat(k)(Prims_op_Hat(":")(Prims_op_Hat(v)(";")))]], uu___)))(l)))));
+
+let TodoList_style = NonRecFun_TodoList_style;
+
+let NonRecFun_Prims_op_Hat = ((s1) => ((s2) => Prims_strcat(s1)(s2)));
+
+let Prims_op_Hat = NonRecFun_Prims_op_Hat;
+
+let NonRecFun_TodoList_class_ = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("class")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_class_ = NonRecFun_TodoList_class_;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_section = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("section")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_section = NonRecFun_FStar_Tactics_JavaScript_HTML_section;
+
+let NonRecFun_TodoList_taskList = ((visibility) => ((tasks) => ((f) => _Y(_ => ((todo) => match([["Completed", ({}) => TodoList_Task___proj__Mkmodel__item__completed(todo)], ["Active", ({}) => Prims_op_Negation(TodoList_Task___proj__Mkmodel__item__completed(todo))], [{bv: "uu___"}, ({uu___}) => true]], visibility)), isVisible => _Y(_ => TodoList_all(((t) => TodoList_Task___proj__Mkmodel__item__completed(t)))(tasks), allCompleted => _Y(_ => match([[true, ({}) => "hidden"], [{bv: "uu___"}, ({uu___}) => "visible"]], Prims_op_Equality(tasks)(Prims_Nil)), cssVisibility => FStar_Tactics_JavaScript_HTML_section(Prims_Cons(TodoList_class_("main"))(Prims_Cons(TodoList_style(Prims_Cons(FStar_Pervasives_Native_Mktuple2("visibility")(cssVisibility))(Prims_Nil)))(Prims_Nil)))(Prims_Cons(FStar_Tactics_JavaScript_HTML_input(Prims_Cons(TodoList_class_("toggle-all"))(Prims_Cons(TodoList_id("toggle-all"))(Prims_Cons(TodoList_type_("checkbox"))(Prims_Cons(TodoList_name("toggle"))(Prims_Cons(TodoList_checked(allCompleted))(Prims_Cons(FStar_Tactics_JavaScript_HTML_onclick(((uu___) => f(TodoList_CheckAll(Prims_op_Negation(allCompleted))))))(Prims_Nil)))))))(Prims_Nil))(Prims_Cons(FStar_Tactics_JavaScript_HTML_label(Prims_Cons(TodoList_for("toggle-all"))(Prims_Nil))(Prims_Cons(TodoList_text("Mark all as complete"))(Prims_Nil)))(Prims_Cons(FStar_Tactics_JavaScript_HTML_ul(Prims_Cons(TodoList_class_("todo-list"))(Prims_Nil))(FStar_List_Tot_Base_map(((task) => _Y(_ => TodoList_Task___proj__Mkmodel__item__id(task), id => _Y(_ => TodoList_Task_view(task), taskView => taskView(((msg) => f(TodoList_UpdateTask(FStar_Pervasives_Native_Mktuple2(id)(msg))))) ) )))(FStar_List_Tot_Base_filter(isVisible)(tasks))))(Prims_Nil)))) ) ) ))));
+
+let TodoList_taskList = NonRecFun_TodoList_taskList;
+
+let NonRecFun_TodoList_type_ = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("type")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_type_ = NonRecFun_TodoList_type_;
+
+let NonRecFun_TodoList_checked = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("checked")(FStar_Pervasives_Native_Some(Prims_string_of_bool(c))));
+
+let TodoList_checked = NonRecFun_TodoList_checked;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_onclick = ((f) => FStar_Tactics_JavaScript_HTML_EventAttribute("onclick")(((uu___) => f(UnitType))));
+
+let FStar_Tactics_JavaScript_HTML_onclick = NonRecFun_FStar_Tactics_JavaScript_HTML_onclick;
+
+let NonRecFun_TodoList_name = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("name")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_name = NonRecFun_TodoList_name;
+
+let NonRecFun_TodoList_id = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("id")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_id = NonRecFun_TodoList_id;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_input = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("input")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_input = NonRecFun_FStar_Tactics_JavaScript_HTML_input;
+
+let NonRecFun_TodoList_Task_view = ((model) => ((f) => _Y(_ => Prims_op_Hat(match([[true, ({}) => "completed "], [{bv: "uu___"}, ({uu___}) => ""]], TodoList_Task___proj__Mkmodel__item__completed(model)))(match([[["FStar_Pervasives_Native_Some", {bv: "uu___"}], ({uu___}) => "editing"], [["FStar_Pervasives_Native_None"], ({uu___}) => ""]], TodoList_Task___proj__Mkmodel__item__edits(model))), className => _Y(_ => TodoList_Task_fromOption(TodoList_Task___proj__Mkmodel__item__description(model))(TodoList_Task___proj__Mkmodel__item__edits(model)), description => _Y(_ => Prims_op_Hat("todo-")(Prims_string_of_int(TodoList_Task___proj__Mkmodel__item__id(model))), elementId => FStar_Tactics_JavaScript_HTML_li(Prims_Cons(TodoList_Task_class_(className))(Prims_Nil))(Prims_Cons(FStar_Tactics_JavaScript_HTML_div(Prims_Cons(TodoList_Task_class_("view"))(Prims_Nil))(Prims_Cons(FStar_Tactics_JavaScript_HTML_input(Prims_Cons(TodoList_Task_class_("toggle"))(Prims_Cons(TodoList_Task_type_("checkbox"))(Prims_Cons(TodoList_Task_checked(TodoList_Task___proj__Mkmodel__item__completed(model)))(Prims_Cons(FStar_Tactics_JavaScript_HTML_onclick(((uu___) => f(TodoList_Task_Completed(Prims_op_Negation(TodoList_Task___proj__Mkmodel__item__completed(model)))))))(Prims_Nil)))))(Prims_Nil))(Prims_Cons(FStar_Tactics_JavaScript_HTML_label(Prims_Cons(FStar_Tactics_JavaScript_HTML_onclick(((uu___) => f(TodoList_Task_Focus(elementId)))))(Prims_Nil))(Prims_Cons(FStar_Tactics_JavaScript_HTML_HtmlRaw(description))(Prims_Nil)))(Prims_Cons(FStar_Tactics_JavaScript_HTML_button(Prims_Cons(TodoList_Task_class_("destroy"))(Prims_Cons(FStar_Tactics_JavaScript_HTML_onclick(((uu___) => f(TodoList_Task_Delete))))(Prims_Nil)))(Prims_Nil))(Prims_Nil)))))(Prims_Cons(FStar_Tactics_JavaScript_HTML_input(Prims_Cons(TodoList_Task_class_("edit"))(Prims_Cons(TodoList_Task_value(description))(Prims_Cons(TodoList_Task_name("title"))(Prims_Cons(TodoList_Task_id(elementId))(Prims_Cons(FStar_Tactics_JavaScript_HTML_oninput(((v) => f(TodoList_Task_Edit(v)))))(Prims_Cons(FStar_Tactics_JavaScript_HTML_onblur(((uu___) => f(TodoList_Task_Commit))))(Prims_Nil)))))))(Prims_Nil))(Prims_Nil))) ) ) )));
+
+let TodoList_Task_view = NonRecFun_TodoList_Task_view;
+
+let NonRecFun_TodoList_Task_checked = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("checked")(FStar_Pervasives_Native_Some(Prims_string_of_bool(c))));
+
+let TodoList_Task_checked = NonRecFun_TodoList_Task_checked;
+
+let NonRecFun_TodoList_Task_type_ = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("type")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_Task_type_ = NonRecFun_TodoList_Task_type_;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_button = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("button")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_button = NonRecFun_FStar_Tactics_JavaScript_HTML_button;
+
+let NonRecFun_TodoList_Task_value = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("value")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_Task_value = NonRecFun_TodoList_Task_value;
+
+let NonRecFun_TodoList_Task_id = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("id")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_Task_id = NonRecFun_TodoList_Task_id;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_onblur = ((f) => FStar_Tactics_JavaScript_HTML_EventAttribute("onblur")(((uu___) => f(UnitType))));
+
+let FStar_Tactics_JavaScript_HTML_onblur = NonRecFun_FStar_Tactics_JavaScript_HTML_onblur;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_oninput = ((f) => FStar_Tactics_JavaScript_HTML_EventAttribute("oninput")(((e) => f(FStar_Tactics_JavaScript_Natives_unsafe_pure_jsVal_cast(FStar_Tactics_JavaScript_Natives_op_At_Dot(FStar_Tactics_JavaScript_Natives_op_At_Dot(e)("srcElement"))("value"))))));
+
+let FStar_Tactics_JavaScript_HTML_oninput = NonRecFun_FStar_Tactics_JavaScript_HTML_oninput;
+
+let NonRecFun_TodoList_Task_name = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("name")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_Task_name = NonRecFun_TodoList_Task_name;
+
+let NonRecFun_TodoList_Task_class_ = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("class")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_Task_class_ = NonRecFun_TodoList_Task_class_;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_li = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("li")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_li = NonRecFun_FStar_Tactics_JavaScript_HTML_li;
+
+let NonRecFun_TodoList_Task_fromOption = ((d) => ((o) => match([[["FStar_Pervasives_Native_Some", {bv: "o"}], ({uu___,o}) => o], [["FStar_Pervasives_Native_None"], ({uu___}) => d]], o)));
+
+let TodoList_Task_fromOption = NonRecFun_TodoList_Task_fromOption;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_ul = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("ul")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_ul = NonRecFun_FStar_Tactics_JavaScript_HTML_ul;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_label = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("label")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_label = NonRecFun_FStar_Tactics_JavaScript_HTML_label;
+
+let NonRecFun_TodoList_for = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("for")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_for = NonRecFun_TodoList_for;
+
+let NonRecFun_TodoList_text = FStar_Tactics_JavaScript_HTML_HtmlRaw;
+
+let TodoList_text = NonRecFun_TodoList_text;
+
+let NonRecFun_TodoList_all = ((f) => ((l) => FStar_List_Tot_Base_fold_left(Prims_op_AmpAmp)(true)(FStar_List_Tot_Base_map(f)(l))));
+
+let TodoList_all = NonRecFun_TodoList_all;
+
+let NonRecFun_TodoList_controls = ((visibility) => ((tasks) => ((f) => _Y(_ => FStar_List_Tot_Base_length(FStar_List_Tot_Base_filter(((t) => TodoList_Task___proj__Mkmodel__item__completed(t)))(tasks)), tasksCompleted => _Y(_ => Prims_op_Subtraction(FStar_List_Tot_Base_length(tasks))(tasksCompleted), tasksLeft => _Y(_ => match([[true, ({}) => " item"], [{bv: "uu___"}, ({uu___}) => " items"]], Prims_op_Equality(tasksLeft)(1)), item_ => FStar_Tactics_JavaScript_HTML_footer(Prims_Cons(TodoList_class_("footer"))(Prims_Cons(TodoList_hidden(FStar_List_Tot_Base_isEmpty(tasks)))(Prims_Nil)))(Prims_Cons(FStar_Tactics_JavaScript_HTML_span(Prims_Cons(TodoList_class_("todo-count"))(Prims_Nil))(Prims_Cons(FStar_Tactics_JavaScript_HTML_strong(Prims_Nil)(Prims_Cons(TodoList_text(Prims_string_of_int(tasksLeft)))(Prims_Nil)))(Prims_Cons(TodoList_text(Prims_op_Hat(item_)(" left")))(Prims_Nil))))(Prims_Cons(FStar_Tactics_JavaScript_HTML_ul(Prims_Cons(TodoList_class_("filters"))(Prims_Nil))(Prims_Cons(TodoList_visibilitySwap("#/")("All")(visibility)(f))(Prims_Cons(TodoList_text(" "))(Prims_Cons(TodoList_visibilitySwap("#/active")("Active")(visibility)(f))(Prims_Cons(TodoList_text(" "))(Prims_Cons(TodoList_visibilitySwap("#/completed")("Completed")(visibility)(f))(Prims_Nil)))))))(Prims_Cons(FStar_Tactics_JavaScript_HTML_button(Prims_Cons(TodoList_class_("clear-completed"))(Prims_Cons(TodoList_hidden(Prims_op_Equality(tasksCompleted)(0)))(Prims_Cons(FStar_Tactics_JavaScript_HTML_onclick(((uu___) => f(TodoList_DeleteComplete))))(Prims_Nil))))(Prims_Cons(TodoList_text(Prims_op_Hat("Clear completed (")(Prims_op_Hat(Prims_string_of_int(tasksCompleted))(")"))))(Prims_Nil)))(Prims_Nil)))) ) ) ))));
+
+let TodoList_controls = NonRecFun_TodoList_controls;
+
+let FStar_List_Tot_Base_length = ((uu___4) => match([[["Prims_Nil"], ({uu___}) => 0], [["Prims_Cons", {bv: "uu___"}, {bv: "tl"}], ({uu___,tl}) => Prims_op_Addition(1)(FStar_List_Tot_Base_length(tl))]], uu___4));
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_strong = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("strong")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_strong = NonRecFun_FStar_Tactics_JavaScript_HTML_strong;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_span = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("span")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_span = NonRecFun_FStar_Tactics_JavaScript_HTML_span;
+
+let NonRecFun_TodoList_visibilitySwap = ((uri) => ((visibility) => ((actualVisibility) => ((f) => _Y(_ => match([[true, ({}) => "selected"], [{bv: "uu___"}, ({uu___}) => ""]], Prims_op_Equality(visibility)(actualVisibility)), className => FStar_Tactics_JavaScript_HTML_li(Prims_Cons(FStar_Tactics_JavaScript_HTML_onclick(((uu___) => f(TodoList_ChangeVisibility(visibility)))))(Prims_Nil))(Prims_Cons(FStar_Tactics_JavaScript_HTML_a(Prims_Cons(TodoList_class_(className))(Prims_Cons(TodoList_href(uri))(Prims_Nil)))(Prims_Cons(TodoList_text(visibility))(Prims_Nil)))(Prims_Nil)) )))));
+
+let TodoList_visibilitySwap = NonRecFun_TodoList_visibilitySwap;
+
+let NonRecFun_TodoList_href = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("for")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_href = NonRecFun_TodoList_href;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_a = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("a")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_a = NonRecFun_FStar_Tactics_JavaScript_HTML_a;
+
+let NonRecFun_TodoList_hidden = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("for")(FStar_Pervasives_Native_Some(Prims_string_of_bool(c))));
+
+let TodoList_hidden = NonRecFun_TodoList_hidden;
+
+let NonRecFun_FStar_List_Tot_Base_isEmpty = ((l) => match([[["Prims_Nil"], ({uu___}) => true], [{bv: "uu___"}, ({uu___}) => false]], l));
+
+let FStar_List_Tot_Base_isEmpty = NonRecFun_FStar_List_Tot_Base_isEmpty;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_footer = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("footer")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_footer = NonRecFun_FStar_Tactics_JavaScript_HTML_footer;
+
+let NonRecFun_TodoList_taskEntry = ((task) => ((f) => FStar_Tactics_JavaScript_HTML_header(Prims_Cons(TodoList_class_("header"))(Prims_Nil))(Prims_Cons(FStar_Tactics_JavaScript_HTML_h1(Prims_Nil)(Prims_Cons(TodoList_text("todos"))(Prims_Nil)))(Prims_Cons(FStar_Tactics_JavaScript_HTML_input(Prims_Cons(TodoList_class_("new-todo"))(Prims_Cons(TodoList_placeholder("What needs to be done?"))(Prims_Cons(TodoList_autofocus(true))(Prims_Cons(TodoList_value(task))(Prims_Cons(TodoList_name("newTodo"))(Prims_Cons(FStar_Tactics_JavaScript_HTML_oninput(((v) => f(TodoList_UpdateField(v)))))(Prims_Nil)))))))(Prims_Nil))(Prims_Nil)))));
+
+let TodoList_taskEntry = NonRecFun_TodoList_taskEntry;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_header = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("header")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_header = NonRecFun_FStar_Tactics_JavaScript_HTML_header;
+
+let NonRecFun_TodoList_autofocus = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("autofocus")(FStar_Pervasives_Native_Some(Prims_string_of_bool(c))));
+
+let TodoList_autofocus = NonRecFun_TodoList_autofocus;
+
+let NonRecFun_TodoList_value = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("value")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_value = NonRecFun_TodoList_value;
+
+let NonRecFun_TodoList_placeholder = ((c) => FStar_Tactics_JavaScript_HTML_TextAttribute("placeholder")(FStar_Pervasives_Native_Some(c)));
+
+let TodoList_placeholder = NonRecFun_TodoList_placeholder;
+
+let NonRecFun_FStar_Tactics_JavaScript_HTML_h1 = ((a) => ((l) => FStar_Tactics_JavaScript_HTML_HtmlElement("h1")(a)(FStar_Pervasives_Native_Some(l))));
+
+let FStar_Tactics_JavaScript_HTML_h1 = NonRecFun_FStar_Tactics_JavaScript_HTML_h1;
+
+let NonRecFun_FStar_Tactics_JavaScript_Natives_setTimeout = ((fn) => ((ms) => _Y(_ => _Y(_ => FStar_Tactics_JavaScript_Natives_jsGlobalThis(UnitType), uu___ => FStar_Tactics_JavaScript_Natives_currifyMethod(uu___)("setTimeout")(2) ), f => f(fn)(ms) )));
+
+let FStar_Tactics_JavaScript_Natives_setTimeout = NonRecFun_FStar_Tactics_JavaScript_Natives_setTimeout;
+
+
+//ENTRY POINT
+
+FStar_Tactics_JavaScript_Natives_setTimeout(TodoList_app)(2000)</script> <div id=render></div>

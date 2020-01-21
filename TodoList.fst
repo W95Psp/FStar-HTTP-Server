@@ -278,33 +278,33 @@ let writeToFile file content
 
 let _: unit = _ by (
   let content =  "
-     <link rel=\"stylesheet\" href=\"https://todomvc.com/examples/elm/node_modules/todomvc-app-css/index.css\">
-  <script src=\"https://wzrd.in/standalone/virtual-dom@latest\"></script>"
+     <link rel=\"stylesheet\" href=\"http://todomvc.com/examples/elm/node_modules/todomvc-app-css/index.css\">
+  <script src=\"http://wzrd.in/standalone/virtual-dom@latest\"></script>"
         ^ "<script type=\"text/javascript\">" ^ js_of_app ^ "</script> <div id=render></div>" in
   writeToFile "todo-app.html" content;
   exact (`())
 )
 
 
-open HTTP.Server.Types.Helpers
-let example () =
-  let handle = fun s req (_: unit {
-      normalize (DM.has (basicReqs ++ [hasUrlencoded;hasJSON]) req)
-    }) -> 
-    let res = mkHttpRes200Html (
-          "<script src=\"//wzrd.in/standalone/virtual-dom@latest\"></script>"
-        ^ "<script type=\"text/javascript\">" ^ js_of_app ^ "</script> <div id=render></div>"
-    ) in
-    s+1, Inr res
-  in
-  loop
-    (parseUrlencoded [] (parseJSON [hasUrlencoded] handle))
-    (fun s e -> s, Inl e) 0 socket
+// open HTTP.Server.Types.Helpers
+// let example () =
+//   let handle = fun s req (_: unit {
+//       normalize (DM.has (basicReqs ++ [hasUrlencoded;hasJSON]) req)
+//     }) -> 
+//     let res = mkHttpRes200Html (
+//           "<script src=\"//wzrd.in/standalone/virtual-dom@latest\"></script>"
+//         ^ "<script type=\"text/javascript\">" ^ js_of_app ^ "</script> <div id=render></div>"
+//     ) in
+//     s+1, Inr res
+//   in
+//   loop
+//     (parseUrlencoded [] (parseJSON [hasUrlencoded] handle))
+//     (fun s e -> s, Inl e) 0 socket
 
-let _ = assert (true) by (
-    let x = example () in
-    dump x
-  )
+// let _ = assert (true) by (
+//     let x = example () in
+//     dump x
+//   )
 
 
 

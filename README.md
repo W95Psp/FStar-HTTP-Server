@@ -6,8 +6,8 @@ It also implements a F*-to-JS converter as a F* tactic.
 
 On the top of this, I made a minimal ELM-like enigne, to make functional reactive web programming. So one can start a HTTP server whinin F* as a tactic, generate JS definition for a bunch of functions, send it to a browser, and provide the browser user a client-side web app, written in F*!
 
-# [Demo todo list](https://raw.githack.com/W95Psp/FStar-HTTP-Server/master/todo-app.html)
-`TodoList.fst` is a clone of https://github.com/tastejs/todomvc/tree/gh-pages/examples/elm in F*. The result is `todo-app.html`, run it in your browser [here](https://raw.githack.com/W95Psp/FStar-HTTP-Server/master/todo-app.html).
+# [Demo todo list](http://raw.githack.com/W95Psp/FStar-HTTP-Server/master/todo-app.html)
+`TodoList.fst` is a clone of https://github.com/tastejs/todomvc/tree/gh-pages/examples/elm in F*. The result is `todo-app.html`, run it in your browser [here](http://raw.githack.com/W95Psp/FStar-HTTP-Server/master/todo-app.html).
 
 
 #### [F* web app demo](https://raw.githack.com/W95Psp/FStar-HTTP-Server/master/index.html)
